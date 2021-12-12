@@ -1,0 +1,19 @@
+[package]
+name = "propdayscov-rs"
+authors = ["Andrew Repp <rust@andrewrepp.com>"]
+description = "Calculation proportion of days covered metric from CSV."
+documentation = "https://github.com/ReppCodes/propdayscov-rs"
+homepage = "https://github.com/ReppCodes/propdayscov-rs"
+repository = "https://github.com/ReppCodes/propdayscov-rs"
+readme = "README.md"
+keywords = ["csv", "healthcare", "metric", "serde"]
+license = "Unlicense/MIT"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+csv = "1.1"
+serde = { version = "1.0.55", features = ["derive"] }
+chrono = "0.4"
