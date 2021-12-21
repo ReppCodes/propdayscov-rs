@@ -1,14 +1,14 @@
 use std::io;
-
 mod dose_parser;
 mod date_shifter;
 mod pdc;
+mod file_selector;
 
 fn main() {
-    // entry point into the library
+    
+    // user must select csv with claims information
 
-    // bring in doses library, capture directly into parser
-    let file_in = io::stdin();
+    let file_in = file_selector::select_file().unwrap();
     let doses = dose_parser::parse_doses(file_in);
     for entry in doses{
         // show that we parsed correctly while developing

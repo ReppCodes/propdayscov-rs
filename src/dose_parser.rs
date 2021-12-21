@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::io::{Stdin};
+use std::path::PathBuf;
 
 use chrono::NaiveDate;
 use serde::Deserialize;
@@ -56,7 +56,7 @@ mod mmddyyyy_fmt {
     }
 }
 
-pub fn parse_doses(file_in: Stdin) -> Result<Vec<Dose>, Box<dyn Error>> {
+pub fn parse_doses(file_in: PathBuf) -> Result<Vec<Dose>, Box<dyn Error>> {
     let mut csv_reader = csv::Reader::from_reader(file_in);
     let mut doses: Vec<Dose> = Vec::new();
     for record in csv_reader.deserialize() {
