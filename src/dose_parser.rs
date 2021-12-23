@@ -1,13 +1,39 @@
 use std::error::Error;
 use std::path::PathBuf;
+use std::collections::HashMap;
 
 use chrono::NaiveDate;
 use serde::Deserialize;
 
+#[derive(Debug)]
+pub struct PatientCalendar {
+    patient_id: String,
+    drug_name: String,
+    coverage_date: NaiveDate
+}
+
+#[derive(Debug)]
+pub struct Patient {
+    patient_id: String,
+    adherence: f64,
+    drug_list: Vec<String>,
+    given_doses: Vec<Dose>
+}
+
+impl Patient {
+    fn new(patient_id: String) -> Patient {
+        Patient{
+            patient_id: patient_id,
+            adherence: 0.0,
+            drug_list: Vec::new(),
+            given_doses: Vec::new(),
+        }
+    }
+}
+
 // By default, struct field names are deserialized based on the position of
 // a corresponding field in the CSV data's header record.
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Dose {
     patient_id: String,
     drug_name: String,
@@ -56,12 +82,30 @@ mod mmddyyyy_fmt {
     }
 }
 
-pub fn parse_doses(file_in: PathBuf) -> Result<Vec<Dose>, Box<dyn Error>> {
-    let mut csv_reader = csv::Reader::from_reader(file_in);
-    let mut doses: Vec<Dose> = Vec::new();
-    for record in csv_reader.deserialize() {
+pub fn parse_doses(file_in: PathBuf) -> Result<HashMap<String, Patient>, Box<dyn Error>> {
+    let csv_reader = csv::Reader::from_path(file_in);
+    let mut patient_map: HashMap<String, Patient> = HashMap::new();
+    for record in csv_reader.unwrap().deserialize() {
         let dose: Dose = record?;
-        doses.push(dose);
+        let patient_id: String = dose.patient_id.clone();
+
+        if !patient_map.contains_key(&patient_id){
+            let mut new_pat: Patient = Patient::new(patient_id.clone());
+            new_pat.given_doses.push(dose);
+            patient_map.insert(patient_id, new_pat);
+        }
+        else {
+            (*patient_map.get_mut(&dose.patient_id).unwrap()).given_doses.push(dose);
+        }
+        
     }
-    Ok(doses)
+    Ok(patient_map)
+}
+
+// Still working out the right structure here
+pub fn create_calendar(_dose_list: Vec<Dose>) -> Result<PatientCalendar, Box<dyn Error>> {
+    let dummy_date: NaiveDate = NaiveDate::from_ymd(1999, 01, 01);
+    let patient_cal: PatientCalendar = PatientCalendar { patient_id: "johnsmith".to_string(), drug_name: "drugname".to_string(), coverage_date:  dummy_date};
+
+    Ok(patient_cal)
 }

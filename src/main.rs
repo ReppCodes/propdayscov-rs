@@ -1,4 +1,3 @@
-use std::io;
 mod dose_parser;
 mod date_shifter;
 mod pdc;
@@ -9,7 +8,7 @@ fn main() {
     // user must select csv with claims information
 
     let file_in = file_selector::select_file().unwrap();
-    let doses = dose_parser::parse_doses(file_in);
+    let doses = dose_parser::deser_doses(file_in);
     for entry in doses{
         // show that we parsed correctly while developing
         // TODO remove this when further along
