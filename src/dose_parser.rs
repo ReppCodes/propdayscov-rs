@@ -7,17 +7,28 @@ use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct PatientCalendar {
-    patient_id: String,
     drug_name: String,
-    coverage_date: NaiveDate
+    coverage_date: NaiveDate,
+    covered_bool: bool
+}
+
+impl PatientCalendar{
+    fn new() -> PatientCalendar {
+        PatientCalendar {
+            drug_name: String,
+            coverage_date: NaiveDate,
+            covered_bool: bool
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct Patient {
-    patient_id: String,
-    adherence: f64,
-    drug_list: Vec<String>,
-    given_doses: Vec<Dose>
+    pub patient_id: String,
+    pub adherence: f64,
+    pub drug_list: Vec<String>,
+    pub given_doses: Vec<Dose>,
+    pub shifted_calendar: PatientCalendar
 }
 
 impl Patient {
@@ -27,8 +38,20 @@ impl Patient {
             adherence: 0.0,
             drug_list: Vec::new(),
             given_doses: Vec::new(),
+            shifted_calendar: PatientCalendar::new()
         }
     }
+    fn create_calendar(&self) -> () {
+
+        self.shifted_calendar;
+    }
+}
+
+pub fn create_calendar(patient: Patient) -> Result<PatientCalendar, Box<dyn Error>> {
+    let dummy_date: NaiveDate = NaiveDate::from_ymd(1999, 01, 01);
+    let patient_cal: PatientCalendar = PatientCalendar { patient_id: "johnsmith".to_string(), drug_name: "drugname".to_string(), coverage_date:  dummy_date};
+
+    Ok(patient_cal)
 }
 
 // By default, struct field names are deserialized based on the position of
@@ -102,10 +125,3 @@ pub fn parse_doses(file_in: PathBuf) -> Result<HashMap<String, Patient>, Box<dyn
     Ok(patient_map)
 }
 
-// Still working out the right structure here
-pub fn create_calendar(_dose_list: Vec<Dose>) -> Result<PatientCalendar, Box<dyn Error>> {
-    let dummy_date: NaiveDate = NaiveDate::from_ymd(1999, 01, 01);
-    let patient_cal: PatientCalendar = PatientCalendar { patient_id: "johnsmith".to_string(), drug_name: "drugname".to_string(), coverage_date:  dummy_date};
-
-    Ok(patient_cal)
-}

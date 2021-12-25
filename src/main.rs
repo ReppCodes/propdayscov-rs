@@ -8,11 +8,10 @@ fn main() {
     // user must select csv with claims information
 
     let file_in = file_selector::select_file().unwrap();
-    let doses = dose_parser::deser_doses(file_in);
-    for entry in doses{
-        // show that we parsed correctly while developing
-        // TODO remove this when further along
-        println!("{:?}", entry);
+    let patients = dose_parser::parse_doses(file_in);
+    for (id, patient) in patients.unwrap().iter_mut() {
+        dose_parser::create_calendar(patient);
+    
     }
 
     // TODO -- see how to add error handling to the dose parser
