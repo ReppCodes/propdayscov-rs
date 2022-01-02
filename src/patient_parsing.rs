@@ -134,7 +134,7 @@ pub fn parse_doses(file_in: PathBuf) -> Result<HashMap<String, Patient>, Box<dyn
 }
 
 // Core program logic moved down here away from structs and ser/deser for clarity
-impl Patient{
+impl Patient {
     pub fn calculate_pdc(&mut self) -> () {
         // calculate shifted calendar
         let mut shifted_calendar: HashMap<String, HashMap<NaiveDate, bool>> = HashMap::new();
@@ -151,7 +151,7 @@ impl Patient{
                 let mut start_dt: NaiveDate = dose.fill_date;
 
                 // shift start date to handle early refills
-                if start_dt < prior_end_dt{
+                if start_dt < prior_end_dt {
                     start_dt = prior_end_dt + Duration::days(1);
                 }
 
@@ -162,18 +162,18 @@ impl Patient{
 
                 // generate set of all covered days for this dose, pushed into set for given drug
                 let mut dt = start_dt;
-                while dt <= end_dt{
+                while dt <= end_dt {
                     covered_dates.insert(dt);
                     dt = dt + Duration::days(1);
                 }
 
                 // bookkeeping on start/end dates for patient analysis window
-                // TODO should these be passed in by user, optionally?  
-                    // this doesn't allow for eligiblity if it's available, but tbh it never is....
-                if end_dt > last_end_dt{
+                // TODO should these be passed in by user, optionally?
+                // this doesn't allow for eligiblity if it's available, but tbh it never is....
+                if end_dt > last_end_dt {
                     last_end_dt = end_dt;
                 }
-                if start_dt < first_start_dt{
+                if start_dt < first_start_dt {
                     first_start_dt = start_dt;
                 }
             }
@@ -181,17 +181,16 @@ impl Patient{
             // generate full range of days for patient analysis window
             let mut all_dates: HashSet<NaiveDate> = HashSet::new();
             let mut dt = first_start_dt;
-            while dt <= last_end_dt{
+            while dt <= last_end_dt {
                 all_dates.insert(dt);
                 dt = dt + Duration::days(1);
             }
 
             let mut coverage_cal: HashMap<NaiveDate, bool> = HashMap::new();
-            for date in all_dates{
-                if covered_dates.contains(&date){
+            for date in all_dates {
+                if covered_dates.contains(&date) {
                     coverage_cal.insert(date, true);
-                }
-                else{
+                } else {
                     coverage_cal.insert(date, false);
                 }
             }
@@ -204,8 +203,8 @@ impl Patient{
         for (drug_name, calendar) in shifted_calendar {
             let mut numerator = 0;
             let mut denominator = 0;
-            for (date, covered) in calendar{
-                if covered == true{
+            for (date, covered) in calendar {
+                if covered == true {
                     numerator += 1;
                     overall_covered_days.insert(date);
                 }
@@ -215,6 +214,7 @@ impl Patient{
                 self.drug_lvl_adherence.insert(drug_name.clone(), drug_adh);
             }
         }
-        self.overall_adherence = overall_covered_days.len() as f64 / overall_total_days.len() as f64;
+        self.overall_adherence =
+            overall_covered_days.len() as f64 / overall_total_days.len() as f64;
     }
 }

@@ -15,7 +15,8 @@ edition = "2021"
 
 [dependencies]
 csv = "1.1"
-serde = { version = "1.0.55", features = ["derive"] }
+serde = {version = "1.0.55", features = ["derive"]}
 chrono = "0.4"
 nfd2 = "0.3.0"
+clap = { version = "3.0.0", features = ["derive"] }
 rayon = "1.5.1"
