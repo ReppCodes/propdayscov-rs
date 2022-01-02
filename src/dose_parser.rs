@@ -3,15 +3,16 @@ use std::error::Error;
 use std::path::PathBuf;
 
 use chrono::{Duration, NaiveDate};
-use serde::Deserialize;
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+#[derive(Debug, Serialize, Clone)]
 pub struct Patient {
     pub patient_id: String,
     pub overall_adherence: f64,
     pub drug_lvl_adherence: HashMap<String, f64>,
+    #[serde(skip_serializing)]
     pub drug_list: HashSet<String>,
+    #[serde(skip_serializing)]
     pub given_doses: HashMap<String, Vec<Dose>>,
-    pub shifted_calendar: HashMap<String, HashMap<NaiveDate, bool>>,
 }
 
 impl Patient {
@@ -22,7 +23,6 @@ impl Patient {
             drug_lvl_adherence: HashMap::new(),
             drug_list: HashSet::new(),
             given_doses: HashMap::new(),
-            shifted_calendar: HashMap::new(),
         }
     }
 }
@@ -135,7 +135,9 @@ pub fn parse_doses(file_in: PathBuf) -> Result<HashMap<String, Patient>, Box<dyn
 
 // Core program logic moved down here away from structs and ser/deser for clarity
 impl Patient{
-    pub fn create_calendar(&mut self) -> () {
+    pub fn calculate_pdc(&mut self) -> () {
+        // calculate shifted calendar
+        let mut shifted_calendar: HashMap<String, HashMap<NaiveDate, bool>> = HashMap::new();
         for (drug_name, dose_list) in &mut self.given_doses {
             // sort given_doses by date
             dose_list.sort_by(|a, b| a.fill_date.cmp(&b.fill_date));
@@ -193,27 +195,26 @@ impl Patient{
                     coverage_cal.insert(date, false);
                 }
             }
-            self.shifted_calendar.insert(drug_name.clone(), coverage_cal);
+            shifted_calendar.insert(drug_name.clone(), coverage_cal);
         }
-    }
-    pub fn calculate_pdc(&mut self) -> () {
+
+        // calculate PDC
         let mut overall_total_days: HashSet<NaiveDate> = HashSet::new();
         let mut overall_covered_days: HashSet<NaiveDate> = HashSet::new();
-        for (drug_name, calendar) in &mut self.shifted_calendar {
+        for (drug_name, calendar) in shifted_calendar {
             let mut numerator = 0;
             let mut denominator = 0;
             for (date, covered) in calendar{
-                if *covered == true{
+                if covered == true{
                     numerator += 1;
-                    overall_covered_days.insert(*date);
+                    overall_covered_days.insert(date);
                 }
                 denominator += 1;
-                overall_total_days.insert(*date);
+                overall_total_days.insert(date);
                 let drug_adh: f64 = numerator as f64 / denominator as f64;
                 self.drug_lvl_adherence.insert(drug_name.clone(), drug_adh);
             }
         }
         self.overall_adherence = overall_covered_days.len() as f64 / overall_total_days.len() as f64;
-        
     }
 }
