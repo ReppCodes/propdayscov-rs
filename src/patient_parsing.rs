@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use chrono::{Duration, NaiveDate};
 use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Serialize, Clone)]
 pub struct Patient {
     pub patient_id: String,
@@ -156,8 +157,8 @@ impl Patient {
                 }
 
                 // calculate end date off of shifted start date
-                // TODO check if we need a -1 here, to account for pill taken on day of fill
-                let end_dt: NaiveDate = start_dt + Duration::days(dose.days_supply.into());
+                // TODO check whether we need a -1 here, to account for pill taken on day of fill
+                let end_dt: NaiveDate = start_dt + Duration::days(dose.days_supply.into()) - Duration::days(1);
                 prior_end_dt = end_dt;
 
                 // generate set of all covered days for this dose, pushed into set for given drug

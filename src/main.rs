@@ -1,7 +1,5 @@
 use clap::Parser;
-use patient_parsing::Patient;
 use rayon::prelude::*;
-use std::collections::HashMap;
 
 mod file_selector;
 mod patient_parsing;
@@ -29,16 +27,12 @@ fn main() {
     let mut patients = patient_parsing::parse_doses(file_in).unwrap();
 
     // calculate PDC, including all calendar shifting needed.  use Rayon magic for parallelization
-    let processed_patients: HashMap<String, Patient> = patients
-        .par_iter_mut()
-        .map(|(id, patient)| {
-            patient.calculate_pdc();
-            (id.clone(), patient.clone())
-        })
-        .collect();
+    patients.par_iter_mut().for_each(|(_id, patient)| {
+        patient.calculate_pdc();
+    });
 
     // print results to stdout for now
-    for (_id, patient) in processed_patients {
+    for (_id, patient) in patients {
         println!("{:?}", patient.overall_adherence);
         println!("{:?}", patient.drug_lvl_adherence);
     }
@@ -46,11 +40,11 @@ fn main() {
     // TODO
     // 1. add more tests.  multiple patients, multiple drugs, etc
     // 2. figure out how to dump this out to a file.  simple as second nfd selector and serialize out?
-    // aggravating.  maybe switch to CLI arguments instead?
+        // aggravating.  maybe switch to CLI arguments instead?
     // 3. add support for multiple imported CSVs
-    // as comma-separated list of cli filepaths? ugh...
-    // maybe as directory?
+        // as comma-separated list of cli filepaths? ugh...
+        // maybe as directory?
     // 4. add data checks on imports
-    // check for duplicate doses
-    // check for ..... ?
+        // check for duplicate doses
+        // check for ..... ?
 }
