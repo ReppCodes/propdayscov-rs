@@ -5,7 +5,6 @@ mod file_selector;
 mod patient_parsing;
 mod pdc;
 
-// TODO -- flesh this out.  want input file, output file, drug-level
 #[derive(Parser, Debug)]
 #[clap(about, version, author)]
 pub struct Args {
