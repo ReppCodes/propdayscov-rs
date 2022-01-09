@@ -26,6 +26,8 @@ impl Error for DialogCancelError {
     }
 }
 
+// This is no longer used, moving over to support command line arguments.  It is kept here for possible future use.
+#[allow(dead_code)]
 pub fn select_file() -> Result<PathBuf, DialogCancelError> {
     match nfd2::open_file_dialog(None, None).expect("Error opening input file dialog.") {
         Response::Cancel => Err(DialogCancelError::new("User cancelled file selection.")),

@@ -10,11 +10,11 @@ mod pdc;
 #[clap(about, version, author)]
 pub struct Args {
     // Path to the input CSV file
-    #[clap(short, long)]
+    #[clap(short = 'i', long)]
     infile: String,
 
     // Path to the output CSV file
-    #[clap(short, long)]
+    #[clap(short = 'o', long)]
     outfile: String,
 
 
@@ -24,32 +24,31 @@ pub struct Args {
 }
 
 fn main() {
-    // TODO, reinstate when ready
-    // let args = Args::parse();
-    // user must select csv with claims information
+    // example CLI invokation while developing
+    // cargo run -- --infile=C:\Users\windo\Documents\rust\propdayscov-rs\test\files\one_patient_one_drug.csv --outfile=C:\Users\windo\Documents\showme.csv --druglevel
+    let args = Args::parse();
+
+    // user must indicate csv with claims information
     // single file for now. multiple files in the future?  possibly also eligibility files?
-    let file_in = file_selector::select_file().unwrap();
-    let mut patients = patient_parsing::parse_doses(file_in).unwrap();
+    let mut patients = patient_parsing::parse_doses(args.infile).unwrap();
 
     // calculate PDC, including all calendar shifting needed.  use Rayon magic for parallelization
     patients.par_iter_mut().for_each(|(_id, patient)| {
         patient.calculate_pdc();
     });
 
-    // print results to stdout for now
-    for (_id, patient) in patients {
-        println!("{:?}", patient.overall_adherence);
-        println!("{:?}", patient.drug_lvl_adherence);
+    // write results out to file
+    match patient_parsing::export_results(&args.outfile, patients, args.druglevel) {
+        Err(e) => panic!("Error when writing results -- {:?}", e),
+        Ok(()) => {println!("PDC successfully calculated, results written to {:?}", &args.outfile)}
     }
 
     // TODO
     // 1. add more tests.  multiple patients, multiple drugs, etc
-    // 2. figure out how to dump this out to a file.  simple as second nfd selector and serialize out?
-        // aggravating.  maybe switch to CLI arguments instead?
-    // 3. add support for multiple imported CSVs
+    // 2. add support for multiple imported CSVs
         // as comma-separated list of cli filepaths? ugh...
         // maybe as directory?
-    // 4. add data checks on imports
+    // 3. add data checks on imports
         // check for duplicate doses
         // check for ..... ?
 }

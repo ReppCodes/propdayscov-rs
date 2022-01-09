@@ -1,9 +1,11 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use chrono::{Duration, NaiveDate};
 use serde::{Deserialize, Serialize};
+use csv;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Patient {
@@ -78,11 +80,12 @@ mod mmddyyyy_fmt {
     }
 }
 
-pub fn parse_doses(file_in: PathBuf) -> Result<HashMap<String, Patient>, Box<dyn Error>> {
-    let csv_reader = csv::Reader::from_path(file_in);
+pub fn parse_doses(file_in: String) -> Result<HashMap<String, Patient>, Box<dyn Error>> {
+    let in_path = PathBuf::from_str(&file_in).expect("Error identifying indicated infile path");
+    let csv_reader = csv::Reader::from_path(in_path);
     let mut patient_map: HashMap<String, Patient> = HashMap::new();
     for record in csv_reader
-        .expect("Please select a single, correctly formatted, CSV file.")
+        .expect("Please indicate a single, correctly formatted, CSV file")
         .deserialize()
     {
         let dose: Dose = record?;
@@ -134,9 +137,31 @@ pub fn parse_doses(file_in: PathBuf) -> Result<HashMap<String, Patient>, Box<dyn
     Ok(patient_map)
 }
 
+pub fn export_results(file_out: &String, patient_map: HashMap<String, Patient>, drug_level: bool) -> Result<(), Box<dyn Error>>{
+    let out_path = PathBuf::from_str(file_out).expect("Error identifying indicated outfile path.");
+    let mut writer = csv::Writer::from_path(out_path).expect("Error writing results to indicated filepath.");
+
+    for (patient_id, patient) in &patient_map{
+        if drug_level == true{
+            writer.write_record(&["Patient ID", "Drug Name", "PDC"])?;
+            for (drug, adh_value) in &patient.drug_lvl_adherence{
+                writer.write_record(&[patient_id, drug, &adh_value.to_string()])?;
+            }
+        }
+        else{
+            writer.write_record(&["Patient ID", "PDC"])?;
+            writer.write_record(&[patient_id, &patient.overall_adherence.to_string()])?;
+        }
+    }
+    Ok(())
+}
+
 // Core program logic moved down here away from structs and ser/deser for clarity
 impl Patient {
     pub fn calculate_pdc(&mut self) -> () {
+        // This function handles the date shifting logic to create a "coverage calendar" for each patient and each drug they've taken.
+        // This could probably be split up, for better modularity, but that requires storing the calendars and they can get quite large.
+
         // calculate shifted calendar
         let mut shifted_calendar: HashMap<String, HashMap<NaiveDate, bool>> = HashMap::new();
         for (drug_name, dose_list) in &mut self.given_doses {
@@ -157,7 +182,7 @@ impl Patient {
                 }
 
                 // calculate end date off of shifted start date
-                // TODO check whether we need a -1 here, to account for pill taken on day of fill
+                // TODO  during testing, confirm that we need a -1 here, to account for pill taken on day of fill
                 let end_dt: NaiveDate = start_dt + Duration::days(dose.days_supply.into()) - Duration::days(1);
                 prior_end_dt = end_dt;
 
@@ -170,7 +195,7 @@ impl Patient {
 
                 // bookkeeping on start/end dates for patient analysis window
                 // TODO should these be passed in by user, optionally?
-                // this doesn't allow for eligiblity if it's available, but tbh it never is....
+                // this currently doesn't allow for eligiblity if it's available, but tbh it never is....
                 if end_dt > last_end_dt {
                     last_end_dt = end_dt;
                 }
