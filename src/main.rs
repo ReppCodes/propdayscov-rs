@@ -9,13 +9,18 @@ mod pdc;
 #[derive(Parser, Debug)]
 #[clap(about, version, author)]
 pub struct Args {
-    /// Name of the person to greet
-    #[clap(short, long, default_value = "User")]
-    name: String,
+    // Path to the input CSV file
+    #[clap(short, long)]
+    infile: String,
 
-    /// Number of times to greet
-    #[clap(short, long, default_value_t = 1)]
-    count: u8,
+    // Path to the output CSV file
+    #[clap(short, long)]
+    outfile: String,
+
+
+    /// Whether to output the adherence at drug level, or for overall patient
+    #[clap(short, long)] 
+    druglevel: bool,
 }
 
 fn main() {
