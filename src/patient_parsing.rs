@@ -170,11 +170,20 @@ impl Patient {
 
             // iterate through doses, generating shifted start and stop dates
             let mut first_start_dt = NaiveDate::from_ymd(2900, 1, 1);
-            let mut last_end_dt = NaiveDate::from_ymd(1900, 1, 1);
+            let mut last_start_dt = NaiveDate::from_ymd(1900, 1, 1);
             let mut prior_end_dt = NaiveDate::from_ymd(1900, 1, 2);
             let mut covered_dates: HashSet<NaiveDate> = HashSet::new();
             for dose in dose_list {
-                let mut start_dt: NaiveDate = dose.fill_date;
+                let mut start_dt: NaiveDate = dose.fill_date;                
+                // bookkeeping on start/end dates for patient analysis window
+                // TODO should these be passed in by user, optionally?
+                // this currently doesn't allow for eligiblity if it's available, but tbh it never is....
+                if start_dt > last_start_dt {
+                    last_start_dt = start_dt;
+                }
+                if start_dt < first_start_dt {
+                    first_start_dt = start_dt;
+                }
 
                 // shift start date to handle early refills
                 if start_dt < prior_end_dt {
@@ -193,21 +202,12 @@ impl Patient {
                     dt = dt + Duration::days(1);
                 }
 
-                // bookkeeping on start/end dates for patient analysis window
-                // TODO should these be passed in by user, optionally?
-                // this currently doesn't allow for eligiblity if it's available, but tbh it never is....
-                if end_dt > last_end_dt {
-                    last_end_dt = end_dt;
-                }
-                if start_dt < first_start_dt {
-                    first_start_dt = start_dt;
-                }
             }
 
             // generate full range of days for patient analysis window
             let mut all_dates: HashSet<NaiveDate> = HashSet::new();
             let mut dt = first_start_dt;
-            while dt <= last_end_dt {
+            while dt <= last_start_dt {
                 all_dates.insert(dt);
                 dt = dt + Duration::days(1);
             }
