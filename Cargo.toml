@@ -10,8 +10,9 @@ keywords = ["csv", "healthcare", "metric", "pdc", "serde"]
 license = "Unlicense/MIT"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = [
+    "test/files/*"
+]
 
 [dependencies]
 csv = "1.1"
