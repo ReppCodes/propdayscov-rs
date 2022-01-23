@@ -1,12 +1,12 @@
 [package]
-name = "propdayscov-rs"
+name = "propdayscov"
 authors = ["Andrew Repp <rust@andrewrepp.com>"]
-description = "Calculation proportion of days covered metric from CSV."
+description = "Calculation proportion of days covered metric from input CSV file."
 documentation = "https://github.com/ReppCodes/propdayscov-rs"
 homepage = "https://github.com/ReppCodes/propdayscov-rs"
 repository = "https://github.com/ReppCodes/propdayscov-rs"
 readme = "README.md"
-keywords = ["csv", "healthcare", "metric", "serde"]
+keywords = ["csv", "healthcare", "metric", "pdc", "serde"]
 license = "Unlicense/MIT"
 version = "0.1.0"
 edition = "2021"

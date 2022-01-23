@@ -312,7 +312,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "propdayscov-rs"
+name = "propdayscov"
 version = "0.1.0"
 dependencies = [
  "chrono",
